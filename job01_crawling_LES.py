@@ -11,11 +11,8 @@ import pandas as pd
 import re
 import time
 import datetime
-# 'https://oxylabs.io/blog/how-to-scrape-tripadvisor'에서 추가하라고 한 라이브러리
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from bs4 import BeautifulSoup
 
+# driver 설정
 options = ChromeOptions()
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
 options.add_argument('user-agent=' + user_agent)
@@ -32,24 +29,18 @@ categories = []
 rates = []
 review_num = []
 
-
-# start_url = 'https://www.tripadvisor.co.kr/Attractions-g2023524-Activities-c47-oa0-Chungcheongbuk_do.html'
-# driver.get(start_url)
 time.sleep(1.5)
-Cb_num = 91
-Cn_num = 139
-Jn_num = 250
-DG_num = 74
-US_num = 27
 
+# 리스트 페이지 URL 지정(oa를 0부터 30의 배수만큼 올림)
 driver.get(
-    'https://www.tripadvisor.co.kr/Attractions-g1072086-Activities-c47-oa30-Jeollanam_do.html')
+    'https://www.tripadvisor.co.kr/Attractions-g1072096-Activities-c47-oa30-Chungcheongnam_do.html')
 time.sleep(1)
+# 스크롤을 내려야 광고가 생김
 driver.execute_script('window.scrollTo(0, document.documentElement.scrollHeight);')
-print("광고를 불러 올 때까지 기다림")
+# 광고를 불러 올 때까지 기다림
+print("기다리는 중...")
 time.sleep(5)
-#미완성 코드!!! 관광지 섹션이 3회 나올 때마다 광고가 1회 삽입되는 것을 감안해서 반복문의 반복 횟수를 수정하고 조건을 추가해야 합니다!!
-for i in range(3, 41):
+for i in range(3, 41): # 3부터 40번째 section까지 크롤링, 만일 페이지 내 관광지가 30개 미만인 경우 페이지 마지막의 관광지 section의 인덱스를 XPath로 알아내야 함
     try:
         print('{}번째'.format(i))
         name = driver.find_element(By.XPATH,
@@ -64,7 +55,7 @@ for i in range(3, 41):
                                        '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/div[1]/div[1]/div/div/div[1]'.format(
                                            i)).text
         categories.append(category)
-        try:
+        try: # 평점과 리뷰 갯수
             rate = driver.find_element(By.XPATH,
                                        '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[2]/div/div[1]/div/span/div'.format(
                                            i)).text
@@ -73,22 +64,20 @@ for i in range(3, 41):
                                         '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[2]/div/div[2]'.format(
                                             i)).text
             review_num.append(rev_n)
-        except NoSuchElementException:
+        except NoSuchElementException: # 평점과 리뷰 갯수가 아예 없는 경우
             print("NoSuchElementException from append!")
             rates.append('NaN')
             review_num.append('0')
-    except NoSuchElementException:
+    except NoSuchElementException: # 해당 섹션이 관광지 정보를 담고 있지 않는 경우(광고인 경우)
         print("NoSuchElementException!")
         names.append('NaN')
         hrefs.append('NaN')
         categories.append('NaN')
         rates.append('NaN')
         review_num.append('0')
-    except:
+    except: # 아무튼 예상치 못한 뭔 일이 난 경우
         print("exception!")
     time.sleep(0.2)
-
-next_button_path = '/html/body/div[1]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[41]/div/div[1]/div/div[1]/div/div/a'
 
 print(names)
 print(hrefs)
@@ -96,6 +85,6 @@ print(categories)
 print(rates)
 print(review_num)
 
-df = pd.DataFrame({'name':names, 'url':hrefs, 'category':categories, 'rate':rates, 'review_num':review_num})
+df = pd.DataFrame({'name':names, 'url':hrefs, 'category':categories, 'rate':rates, 'review_num':review_num}) # 데이터프레임으로 저장
 df.info()
-df.to_csv('./dataset/LES/Jeonnam/Jeonnam_landmark_list_2.csv', index=False)
+df.to_csv('./dataset/LES/Ulsan/Ulsan_landmark_list_1.csv', index=False) # csv 파일로 저장
