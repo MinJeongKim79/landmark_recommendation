@@ -11,8 +11,13 @@ import pandas as pd
 import re
 import time
 import datetime
+import os
 
+directory = "./dataset/KMJ/"
+if not os.path.exists(directory):
+    os.makedirs(directory)  # 디렉터리 생성
 
+# driver 설정
 options = ChromeOptions()
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
 options.add_argument('user-agent=' + user_agent)
@@ -33,7 +38,8 @@ time.sleep(1.5)
 
 # 리스트 페이지 URL 지정(oa를 0부터 30의 배수만큼 올림)
 driver.get(
-    'https://www.tripadvisor.co.kr/Attractions-g1072089-Activities-c47-Gyeonggi_do.html')
+    # 'https://www.tripadvisor.co.kr/Attractions-g1072096-Activities-c47-oa60-Chungcheongnam_do.html')
+    'https://www.tripadvisor.co.kr/Attractions-g297889-Activities-c47-oa60-Incheon.html')
 time.sleep(1)
 # 스크롤을 내려야 광고가 생김
 driver.execute_script('window.scrollTo(0, document.documentElement.scrollHeight);')
@@ -41,24 +47,13 @@ driver.execute_script('window.scrollTo(0, document.documentElement.scrollHeight)
 print("기다리는 중...")
 time.sleep(5)
 for i in range(3, 41): # 3부터 40번째 section까지 크롤링, 만일 페이지 내 관광지가 30개 미만인 경우 페이지 마지막의 관광지 section의 인덱스를 XPath로 알아내야 함
-    name = driver.find_element(By.XPATH,
-                               '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[1]/h3/div/span/div'.format(
-                                   i)).text
-    print(name)
-    href = driver.find_element(By.XPATH,
-                               '*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[1]'.format(
-                                   i)).get_attribute('href')
-    print(href)
-    # category = driver.find_element(By.XPATH,
-    #                                '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/div[1]/div[1]/div/div/div[1]'.format(
-    #                                    i)).text
     try:
         print('{}번째'.format(i))
         name = driver.find_element(By.XPATH,
                                    '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[1]/h3/div/span/div'.format(
                                        i)).text
         href = driver.find_element(By.XPATH,
-                                   '*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[1]'.format(
+                                   '//*[@id="lithium-root"]/main/div/div/div[2]/div[2]/div[2]/div[2]/div/div/div[2]/div/div[2]/div/div/section[{}]/div/div/div/div/article/div[2]/header/div/div/div/a[1]'.format(
                                        i)).get_attribute('href')
         hrefs.append(href)
         names.append(name)
@@ -98,5 +93,4 @@ print(review_num)
 
 df = pd.DataFrame({'name':names, 'url':hrefs, 'category':categories, 'rate':rates, 'review_num':review_num}) # 데이터프레임으로 저장
 df.info()
-df.to_csv('./dataset/KMJ/Gyeonggi-do_landmark_list_1.csv', index=False) # csv 파일로 저장
-
+df.to_csv('./dataset/KMJ/Incheon_landmark_list_3.csv', index=False) # csv 파일로 저장
